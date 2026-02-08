@@ -85,7 +85,15 @@ data class PressAccount(
         }
 
     val summary: String
-        get() = "$organizationName ($userId)"
+        get() {
+            val parts = mutableListOf<String>()
+            parts.add(organizationName)
+            if (!contactPerson.isNullOrBlank()) parts.add(contactPerson)
+            parts.add(statusMessage)
+            val expiresStr = expirationDisplayString
+            if (expiresStr != "無期限") parts.add("→ $expiresStr")
+            return parts.joinToString(" | ")
+        }
 
     val statusMessage: String
         get() = when (status) {

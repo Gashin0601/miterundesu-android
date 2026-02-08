@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Info
@@ -42,7 +43,9 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -79,6 +82,7 @@ fun ImageGalleryScreen(
     val isTheaterMode by settingsManager.isTheaterMode.collectAsStateWithLifecycle()
     var showDeletedScreen by remember { mutableStateOf(false) }
     var currentZoom by remember { mutableFloatStateOf(1f) }
+    var isZoomed by remember { mutableStateOf(false) }
 
     // Close if no images
     LaunchedEffect(images) {
@@ -147,6 +151,7 @@ fun ImageGalleryScreen(
         // Image pager
         HorizontalPager(
             state = pagerState,
+            userScrollEnabled = !isZoomed,
             modifier = Modifier
                 .fillMaxSize()
                 .semantics {
@@ -163,7 +168,8 @@ fun ImageGalleryScreen(
                             Modifier.fillMaxSize().blur(30.dp)
                         } else {
                             Modifier.fillMaxSize()
-                        }
+                        },
+                        onZoomChanged = { zoomed -> isZoomed = zoomed }
                     ) {
                         val bitmap = remember(image.id) {
                             BitmapFactory.decodeByteArray(
@@ -198,6 +204,26 @@ fun ImageGalleryScreen(
                 .align(Alignment.BottomCenter)
                 .padding(bottom = 80.dp)
         )
+
+        // Zoom level display
+        AnimatedVisibility(
+            visible = isZoomed,
+            enter = fadeIn(),
+            exit = fadeOut(),
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .padding(top = 100.dp, start = 16.dp)
+        ) {
+            Text(
+                text = "${String.format("%.1f", currentZoom)}x",
+                color = Color.White,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier
+                    .background(Color.Black.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
+                    .padding(horizontal = 8.dp, vertical = 4.dp)
+            )
+        }
 
         // Top controls
         Box(

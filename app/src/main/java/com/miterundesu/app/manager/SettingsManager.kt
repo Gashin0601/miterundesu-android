@@ -137,7 +137,7 @@ class SettingsManager(private val context: Context) {
         const val DEFAULT_LANGUAGE = "ja"
         const val DEFAULT_IS_THEATER_MODE = false
         const val DEFAULT_IS_PRESS_MODE = false
-        const val DEFAULT_SCROLLING_MESSAGE_NORMAL = "すみません、目が不自由なのでこのアプリで拡大して見ています"
-        const val DEFAULT_SCROLLING_MESSAGE_THEATER = "すみません、拡大して見ています"
+        const val DEFAULT_SCROLLING_MESSAGE_NORMAL = "このアプリで撮影された画像は10分で自動削除されます。記録は残りません。安心してご利用ください。"
+        const val DEFAULT_SCROLLING_MESSAGE_THEATER = "撮影はご遠慮ください / No Photography Please"
     }
 }

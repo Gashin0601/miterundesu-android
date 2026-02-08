@@ -14,6 +14,7 @@ fun Bitmap.withWatermark(text: String): Bitmap {
     val canvas = Canvas(result)
 
     val textSize = result.height * 0.018f
+    val titleTextSize = textSize * 1.3f
     val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = android.graphics.Color.argb(90, 255, 255, 255) // semi-transparent white
         this.textSize = textSize
@@ -23,6 +24,13 @@ fun Bitmap.withWatermark(text: String): Bitmap {
 
     val x = textSize * 0.8f
     val y = result.height - textSize * 0.8f
+
+    // Draw app title line above the info text
+    val titlePaint = Paint(paint).apply {
+        this.textSize = titleTextSize
+    }
+    val titleY = y - textSize * 1.2f
+    canvas.drawText("ミテルンデス", x, titleY, titlePaint)
 
     canvas.drawText(text, x, y, paint)
 

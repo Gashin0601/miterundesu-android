@@ -170,6 +170,7 @@ fun MiterundesuAppContent(
 
         composable(AppRoutes.SETTINGS) {
             SettingsScreen(
+                localizationManager = LocalizationManager,
                 isTheaterMode = isTheaterMode,
                 maxZoomFactor = maxZoomFactor,
                 language = language,
@@ -209,6 +210,7 @@ fun MiterundesuAppContent(
 
         composable(AppRoutes.EXPLANATION) {
             ExplanationScreen(
+                localizationManager = LocalizationManager,
                 isTheaterMode = isTheaterMode,
                 onClose = { navController.popBackStack() }
             )

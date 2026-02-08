@@ -22,6 +22,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -67,13 +68,14 @@ fun CapturedImagePreviewScreen(
     val isPressModeEnabled by pressModeManager.isPressModeEnabled.collectAsStateWithLifecycle()
     val isTheaterMode by settingsManager.isTheaterMode.collectAsStateWithLifecycle()
     var currentZoom by remember { mutableFloatStateOf(1f) }
+    var showDeletedScreen by remember { mutableStateOf(false) }
 
     // Auto-close if image expires
     LaunchedEffect(image.id) {
         while (true) {
             delay(1000L)
             if (image.isExpired) {
-                onClose()
+                showDeletedScreen = true
                 break
             }
         }
@@ -85,7 +87,7 @@ fun CapturedImagePreviewScreen(
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 if (image.isExpired) {
-                    onClose()
+                    showDeletedScreen = true
                 }
             }
         }
@@ -96,6 +98,17 @@ fun CapturedImagePreviewScreen(
     }
 
     val shouldBlur = !isPressModeEnabled && (hideContent || isRecording)
+
+    if (showDeletedScreen) {
+        ImageDeletedScreen(
+            localizationManager = localizationManager,
+            onDismiss = {
+                showDeletedScreen = false
+                onClose()
+            }
+        )
+        return
+    }
 
     Box(
         modifier = Modifier

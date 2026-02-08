@@ -68,7 +68,6 @@ class CameraManager {
             imageCapture = ImageCapture.Builder()
                 .setTargetAspectRatio(AspectRatio.RATIO_4_3)
                 .setCaptureMode(ImageCapture.CAPTURE_MODE_MAXIMIZE_QUALITY)
-                .setJpegQuality(60)
                 .build()
 
             val cameraSelector = CameraSelector.Builder()

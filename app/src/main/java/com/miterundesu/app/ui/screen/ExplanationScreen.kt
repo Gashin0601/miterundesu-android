@@ -53,12 +53,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.miterundesu.app.manager.LocalizationManager
 import com.miterundesu.app.ui.theme.DarkBackground
 import com.miterundesu.app.ui.theme.MainGreen
 import com.miterundesu.app.ui.theme.TheaterOrange
 
 @Composable
 fun ExplanationScreen(
+    localizationManager: LocalizationManager,
     isTheaterMode: Boolean,
     onClose: () -> Unit,
     modifier: Modifier = Modifier
@@ -111,9 +113,9 @@ fun ExplanationScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             if (isTheaterMode) {
-                TheaterModeContent(accentColor = accentColor)
+                TheaterModeContent(localizationManager = localizationManager, accentColor = accentColor)
             } else {
-                NormalModeContent(accentColor = accentColor)
+                NormalModeContent(localizationManager = localizationManager, accentColor = accentColor)
             }
 
             Spacer(modifier = Modifier.height(40.dp))
@@ -140,9 +142,9 @@ fun ExplanationScreen(
 }
 
 @Composable
-private fun NormalModeContent(accentColor: Color) {
+private fun NormalModeContent(localizationManager: LocalizationManager, accentColor: Color) {
     Text(
-        text = "Privacy-focused camera magnifier for people with visual impairments and elderly users",
+        text = localizationManager.localizedString("explanation_purpose_description"),
         color = Color.White.copy(alpha = 0.8f),
         fontSize = 16.sp,
         textAlign = TextAlign.Center
@@ -174,28 +176,24 @@ private fun NormalModeContent(accentColor: Color) {
     Spacer(modifier = Modifier.height(32.dp))
 
     ExplanationSection(
-        title = "How to use this app",
-        description = "Use the camera to magnify and view items that are difficult to see. " +
-                "Pinch to zoom or use the zoom buttons. Take photos to review later " +
-                "(photos are automatically deleted after 10 minutes for privacy).",
+        title = localizationManager.localizedString("explanation_how_to_use_title"),
+        description = localizationManager.localizedString("explanation_how_to_use_description"),
         accentColor = accentColor
     )
 
     Spacer(modifier = Modifier.height(20.dp))
 
     ExplanationSection(
-        title = "Why this app is needed",
-        description = "Many people with visual impairments or elderly individuals struggle to read " +
-                "small text, signs, or exhibits. This app provides a simple, privacy-conscious way " +
-                "to magnify and temporarily capture what they need to see.",
+        title = localizationManager.localizedString("explanation_why_needed_title"),
+        description = localizationManager.localizedString("explanation_why_needed_description"),
         accentColor = accentColor
     )
 }
 
 @Composable
-private fun TheaterModeContent(accentColor: Color) {
+private fun TheaterModeContent(localizationManager: LocalizationManager, accentColor: Color) {
     Text(
-        text = "Camera magnifier for use in theaters, museums, and cultural venues",
+        text = localizationManager.localizedString("explanation_theater_description"),
         color = Color.White.copy(alpha = 0.8f),
         fontSize = 16.sp,
         textAlign = TextAlign.Center
@@ -222,11 +220,8 @@ private fun TheaterModeContent(accentColor: Color) {
     Spacer(modifier = Modifier.height(32.dp))
 
     ExplanationSection(
-        title = "Using in cultural venues",
-        description = "Theater mode dims the UI to minimize disturbance to others. " +
-                "The header and footer auto-hide after 15 seconds. " +
-                "All captured images are automatically deleted after 10 minutes " +
-                "to respect copyright and venue policies.",
+        title = localizationManager.localizedString("explanation_theater_title"),
+        description = localizationManager.localizedString("explanation_theater_description"),
         accentColor = accentColor
     )
 }

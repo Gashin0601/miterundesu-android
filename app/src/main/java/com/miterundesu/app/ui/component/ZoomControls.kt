@@ -58,6 +58,7 @@ fun ZoomControls(
             val zoomSpeed = 0.02f * acceleration * (1f + currentZoom * 0.01f)
             val newZoom = (currentZoom + zoomSpeed).coerceIn(1f, maxZoom)
             onZoomChange(newZoom)
+            if (newZoom >= maxZoom) break
             delay(30L)
         }
     }
@@ -69,9 +70,10 @@ fun ZoomControls(
         while (isZoomOutPressed) {
             val elapsed = (System.currentTimeMillis() - startTime) / 1000f
             val acceleration = (1.0 + elapsed).pow(1.5).toFloat()
-            val zoomSpeed = 0.02f * acceleration * (1f + currentZoom * 0.01f)
+            val zoomSpeed = 0.02f * acceleration * (1f + currentZoom * 0.01f) * 0.7f
             val newZoom = (currentZoom - zoomSpeed).coerceIn(1f, maxZoom)
             onZoomChange(newZoom)
+            if (newZoom <= 1f) break
             delay(30L)
         }
     }
@@ -91,7 +93,7 @@ fun ZoomControls(
             onPress = { isZoomOutPressed = true },
             onRelease = { isZoomOutPressed = false },
             onTap = {
-                val newZoom = (currentZoom - 1f).coerceIn(1f, maxZoom)
+                val newZoom = (currentZoom / 1.5f).coerceIn(1f, maxZoom)
                 onZoomChange(newZoom)
             },
             contentDescription = "縮小"
@@ -163,7 +165,7 @@ fun ZoomControls(
             onPress = { isZoomInPressed = true },
             onRelease = { isZoomInPressed = false },
             onTap = {
-                val newZoom = (currentZoom + 1f).coerceIn(1f, maxZoom)
+                val newZoom = (currentZoom * 1.5f).coerceIn(1f, maxZoom)
                 onZoomChange(newZoom)
             },
             contentDescription = "拡大"

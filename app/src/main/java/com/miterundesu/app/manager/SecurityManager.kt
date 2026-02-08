@@ -28,6 +28,9 @@ class SecurityManager {
     private val _showScreenshotWarning = MutableStateFlow(false)
     val showScreenshotWarning: StateFlow<Boolean> = _showScreenshotWarning.asStateFlow()
 
+    private val _showRecordingWarning = MutableStateFlow(false)
+    val showRecordingWarning: StateFlow<Boolean> = _showRecordingWarning.asStateFlow()
+
     var isPressModeEnabled: Boolean = false
         set(value) {
             field = value
@@ -36,6 +39,7 @@ class SecurityManager {
                 _hideContent.value = false
                 _isRecording.value = false
                 _showScreenshotWarning.value = false
+                _showRecordingWarning.value = false
             } else {
                 currentWindow?.let { enableSecurity(it) }
             }
@@ -113,11 +117,19 @@ class SecurityManager {
             return
         }
         _isRecording.value = recording
+        _showRecordingWarning.value = recording
         if (recording) {
             _hideContent.value = true
         } else {
             _hideContent.value = false
         }
+    }
+
+    fun clearSensitiveData() {
+        _hideContent.value = false
+        _isRecording.value = false
+        _showScreenshotWarning.value = false
+        _showRecordingWarning.value = false
     }
 
     fun release() {

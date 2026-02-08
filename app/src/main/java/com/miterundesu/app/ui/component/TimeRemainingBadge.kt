@@ -40,8 +40,9 @@ fun TimeRemainingBadge(
     val seconds = ((remainingMs % 60000) / 1000).toInt()
     val isLowTime = remainingMs < 120_000L
 
-    val textColor = if (isLowTime) Color.Red else MainGreen
-    val displayText = "${minutes}m ${seconds}s"
+    val textColor = if (isLowTime) Color.White else MainGreen
+    val backgroundColor = if (isLowTime) Color.Red else Color.White
+    val displayText = "$minutes:${"%02d".format(seconds)}"
 
     Text(
         text = displayText,
@@ -51,7 +52,7 @@ fun TimeRemainingBadge(
         lineHeight = 12.sp,
         modifier = modifier
             .background(
-                Color.White,
+                backgroundColor,
                 RoundedCornerShape(8.dp)
             )
             .padding(horizontal = 6.dp, vertical = 2.dp)

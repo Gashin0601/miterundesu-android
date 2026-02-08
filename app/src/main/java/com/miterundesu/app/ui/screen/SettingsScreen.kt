@@ -54,6 +54,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.style.TextAlign
+import com.miterundesu.app.manager.LocalizationManager
 import com.miterundesu.app.ui.component.TheaterModeToggle
 import com.miterundesu.app.ui.theme.CardBackground
 import com.miterundesu.app.ui.theme.DarkBackground
@@ -64,6 +66,7 @@ import kotlin.math.roundToInt
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
+    localizationManager: LocalizationManager,
     isTheaterMode: Boolean,
     maxZoomFactor: Float,
     language: String,
@@ -104,7 +107,7 @@ fun SettingsScreen(
         TopAppBar(
             title = {
                 Text(
-                    text = "\u8A2D\u5B9A",
+                    text = localizationManager.localizedString("settings_title"),
                     color = Color.White,
                     fontWeight = FontWeight.Bold
                 )
@@ -113,7 +116,7 @@ fun SettingsScreen(
                 IconButton(onClick = onBack) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back",
+                        contentDescription = localizationManager.localizedString("back"),
                         tint = Color.White
                     )
                 }
@@ -153,7 +156,7 @@ fun SettingsScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Offline - Some features are unavailable",
+                            text = localizationManager.localizedString("offline_warning"),
                             color = Color(0xFFFFA000),
                             fontSize = 13.sp
                         )
@@ -162,7 +165,7 @@ fun SettingsScreen(
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
-            SectionHeader(text = "Camera Settings")
+            SectionHeader(text = localizationManager.localizedString("camera_settings"))
             SettingsCard {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Row(
@@ -171,7 +174,7 @@ fun SettingsScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Zoom Range",
+                            text = localizationManager.localizedString("zoom_range"),
                             color = Color.White,
                             fontSize = 15.sp
                         )
@@ -211,7 +214,7 @@ fun SettingsScreen(
             }
 
             Spacer(modifier = Modifier.height(24.dp))
-            SectionHeader(text = "Language")
+            SectionHeader(text = localizationManager.localizedString("language_setting"))
             SettingsCard {
                 Row(
                     modifier = Modifier
@@ -225,7 +228,7 @@ fun SettingsScreen(
                         onClick = { onLanguageChange("ja") },
                         label = {
                             Text(
-                                "\u65E5\u672C\u8A9E",
+                                localizationManager.localizedString("language_japanese"),
                                 fontWeight = if (language == "ja") FontWeight.Bold else FontWeight.Normal
                             )
                         },
@@ -242,7 +245,7 @@ fun SettingsScreen(
                         onClick = { onLanguageChange("en") },
                         label = {
                             Text(
-                                "English",
+                                localizationManager.localizedString("language_english"),
                                 fontWeight = if (language == "en") FontWeight.Bold else FontWeight.Normal
                             )
                         },
@@ -258,11 +261,11 @@ fun SettingsScreen(
             }
 
             Spacer(modifier = Modifier.height(24.dp))
-            SectionHeader(text = "Scrolling Message")
+            SectionHeader(text = localizationManager.localizedString("scrolling_message"))
             SettingsCard {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
-                        text = "Normal Mode",
+                        text = localizationManager.localizedString("scrolling_message_normal"),
                         color = Color.White.copy(alpha = 0.7f),
                         fontSize = 12.sp
                     )
@@ -286,7 +289,7 @@ fun SettingsScreen(
                     Spacer(modifier = Modifier.height(16.dp))
 
                     Text(
-                        text = "Theater Mode",
+                        text = localizationManager.localizedString("scrolling_message_theater"),
                         color = Color.White.copy(alpha = 0.7f),
                         fontSize = 12.sp
                     )
@@ -310,7 +313,7 @@ fun SettingsScreen(
             }
 
             Spacer(modifier = Modifier.height(24.dp))
-            SectionHeader(text = "Press Mode")
+            SectionHeader(text = localizationManager.localizedString("press_mode_section"))
             SettingsCard {
                 Column(modifier = Modifier.padding(16.dp)) {
                     if (isLoggedIn && pressAccountSummary != null) {
@@ -322,31 +325,31 @@ fun SettingsScreen(
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         TextButton(onClick = onPressModeAccountStatusClick) {
-                            Text("Account Status", color = accentColor)
+                            Text(localizationManager.localizedString("press_account_status"), color = accentColor)
                         }
                         Spacer(modifier = Modifier.height(4.dp))
                         TextButton(onClick = { showLogoutDialog = true }) {
-                            Text("Logout", color = Color.Red)
+                            Text(localizationManager.localizedString("press_logout"), color = Color.Red)
                         }
                     } else {
                         TextButton(
                             onClick = onPressModeLoginClick,
                             enabled = isConnected
                         ) {
-                            Text("Login", color = if (isConnected) accentColor else Color.Gray)
+                            Text(localizationManager.localizedString("press_login_button"), color = if (isConnected) accentColor else Color.Gray)
                         }
                         TextButton(onClick = onPressModeInfoClick) {
-                            Text("About Press Mode", color = accentColor)
+                            Text(localizationManager.localizedString("press_info_title"), color = accentColor)
                         }
                     }
                 }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
-            SectionHeader(text = "App Info")
+            SectionHeader(text = localizationManager.localizedString("app_info"))
             SettingsCard {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    InfoRow(label = "Version", value = versionName)
+                    InfoRow(label = localizationManager.localizedString("version"), value = versionName)
                     Spacer(modifier = Modifier.height(12.dp))
                     TextButton(
                         onClick = {
@@ -354,7 +357,7 @@ fun SettingsScreen(
                             context.startActivity(intent)
                         }
                     ) {
-                        Text("Terms of Service", color = accentColor)
+                        Text(localizationManager.localizedString("terms_of_service"), color = accentColor)
                     }
                     TextButton(
                         onClick = {
@@ -362,16 +365,24 @@ fun SettingsScreen(
                             context.startActivity(intent)
                         }
                     ) {
-                        Text("Privacy Policy", color = accentColor)
+                        Text(localizationManager.localizedString("privacy_policy"), color = accentColor)
                     }
                     TextButton(onClick = onShowTutorial) {
-                        Text("Show Tutorial", color = accentColor)
+                        Text(localizationManager.localizedString("tutorial_show"), color = accentColor)
+                    }
+                    TextButton(
+                        onClick = {
+                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://miterundesu.jp"))
+                            context.startActivity(intent)
+                        }
+                    ) {
+                        Text(localizationManager.localizedString("explanation_website"), color = accentColor)
                     }
                 }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
-            SectionHeader(text = "Reset")
+            SectionHeader(text = localizationManager.localizedString("reset_settings"))
             Button(
                 onClick = { showResetDialog = true },
                 colors = ButtonDefaults.buttonColors(
@@ -382,11 +393,19 @@ fun SettingsScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    text = "Reset Settings",
+                    text = localizationManager.localizedString("reset_settings"),
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(vertical = 4.dp)
                 )
             }
+
+            Text(
+                text = "\u00A9 2024 Miterundesu",
+                color = Color.White.copy(alpha = 0.4f),
+                fontSize = 11.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
+            )
 
             Spacer(modifier = Modifier.height(48.dp))
         }
@@ -395,8 +414,8 @@ fun SettingsScreen(
     if (showResetDialog) {
         AlertDialog(
             onDismissRequest = { showResetDialog = false },
-            title = { Text("Reset Settings") },
-            text = { Text("All settings will be restored to their default values. Are you sure?") },
+            title = { Text(localizationManager.localizedString("reset_settings")) },
+            text = { Text(localizationManager.localizedString("reset_confirm_message")) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -404,12 +423,12 @@ fun SettingsScreen(
                         onResetSettings()
                     }
                 ) {
-                    Text("Reset", color = Color.Red)
+                    Text(localizationManager.localizedString("reset_settings"), color = Color.Red)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showResetDialog = false }) {
-                    Text("Cancel")
+                    Text(localizationManager.localizedString("cancel"))
                 }
             },
             containerColor = CardBackground,
@@ -421,8 +440,8 @@ fun SettingsScreen(
     if (showLogoutDialog) {
         AlertDialog(
             onDismissRequest = { showLogoutDialog = false },
-            title = { Text("Logout") },
-            text = { Text("Are you sure you want to logout from Press Mode?") },
+            title = { Text(localizationManager.localizedString("press_logout")) },
+            text = { Text(localizationManager.localizedString("press_logout_confirm")) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -430,12 +449,12 @@ fun SettingsScreen(
                         onLogout()
                     }
                 ) {
-                    Text("Logout", color = Color.Red)
+                    Text(localizationManager.localizedString("press_logout"), color = Color.Red)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showLogoutDialog = false }) {
-                    Text("Cancel")
+                    Text(localizationManager.localizedString("cancel"))
                 }
             },
             containerColor = CardBackground,

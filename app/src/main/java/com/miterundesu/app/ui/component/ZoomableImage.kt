@@ -28,6 +28,7 @@ fun ZoomableImage(
     modifier: Modifier = Modifier,
     minScale: Float = 1f,
     maxScale: Float = 10f,
+    onZoomChanged: ((Boolean) -> Unit)? = null,
     content: @Composable () -> Unit
 ) {
     var scale by remember { mutableFloatStateOf(1f) }
@@ -68,6 +69,7 @@ fun ZoomableImage(
                     val rawOffset = Offset(newOffsetX + pan.x, newOffsetY + pan.y)
                     offset = calculateBoundedOffset(rawOffset, newScale)
                     scale = newScale
+                    onZoomChanged?.invoke(newScale > 1.01f)
 
                     coroutineScope.launch {
                         animatedScale.snapTo(scale)
@@ -85,6 +87,7 @@ fun ZoomableImage(
                                     animationSpec = spring()
                                 )
                                 scale = 1f
+                                onZoomChanged?.invoke(false)
                             }
                             launch {
                                 animatedOffset.animateTo(
