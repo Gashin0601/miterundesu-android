@@ -2,6 +2,7 @@ package com.miterundesu.app.ui.screen
 
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,19 +17,19 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.OpenInNew
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -39,6 +40,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -46,8 +48,10 @@ import com.miterundesu.app.data.model.PressAccount
 import com.miterundesu.app.data.model.PressAccountStatus
 import com.miterundesu.app.manager.LocalizationManager
 import com.miterundesu.app.manager.PressModeManager
-import com.miterundesu.app.ui.theme.DarkBackground
-import com.miterundesu.app.ui.theme.MainGreen
+
+// System grouped background equivalent for dark mode
+private val SystemGroupedBackground = Color(0xFF1C1C1E)
+private val SystemBackground = Color(0xFF2C2C2E)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -64,25 +68,24 @@ fun PressModeAccountStatusScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = localizationManager.localizedString("press_account_status"),
+                        text = localizationManager.localizedString("press_account_status_title"),
                         color = Color.White
                     )
                 },
-                navigationIcon = {
-                    IconButton(onClick = onClose) {
-                        Icon(
-                            imageVector = Icons.Filled.Close,
-                            contentDescription = localizationManager.localizedString("close"),
-                            tint = Color.White
+                actions = {
+                    TextButton(onClick = onClose) {
+                        Text(
+                            text = localizationManager.localizedString("close"),
+                            color = Color(0xFF0A84FF) // iOS system blue
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = DarkBackground
+                    containerColor = SystemGroupedBackground
                 )
             )
         },
-        containerColor = DarkBackground
+        containerColor = SystemGroupedBackground
     ) { paddingValues ->
         val currentAccount = account
         if (currentAccount == null) {
@@ -93,27 +96,30 @@ fun PressModeAccountStatusScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(horizontal = 24.dp)
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(40.dp))
 
-            // Status icon
+            // Status icon - 80sp to match iOS 80pt
             val statusIcon: ImageVector
             val statusColor: Color
+            val statusTitle: String
             when (currentAccount.status) {
                 PressAccountStatus.ACTIVE -> {
                     statusIcon = Icons.Filled.CheckCircle
-                    statusColor = MainGreen
+                    statusColor = Color(0xFF34C759) // iOS green
+                    statusTitle = localizationManager.localizedString("press_account_status_active")
                 }
                 PressAccountStatus.EXPIRED -> {
-                    statusIcon = Icons.Filled.AccessTime
-                    statusColor = Color(0xFFFF9500)
+                    statusIcon = Icons.Filled.Schedule
+                    statusColor = Color(0xFFFF9500) // iOS orange
+                    statusTitle = localizationManager.localizedString("press_account_status_expired")
                 }
                 PressAccountStatus.DEACTIVATED -> {
                     statusIcon = Icons.Filled.Cancel
                     statusColor = Color.Red
+                    statusTitle = localizationManager.localizedString("press_account_status_deactivated")
                 }
             }
 
@@ -121,33 +127,149 @@ fun PressModeAccountStatusScreen(
                 imageVector = statusIcon,
                 contentDescription = null,
                 tint = statusColor,
-                modifier = Modifier.size(64.dp)
+                modifier = Modifier.size(80.dp)
             )
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Info rows
-            AccountInfoRows(currentAccount, localizationManager)
+            // Status title and message
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(
+                    text = statusTitle,
+                    color = Color.White,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center
+                )
 
-            // Renewal link for expired accounts
+                Text(
+                    text = currentAccount.statusMessage,
+                    color = Color.White.copy(alpha = 0.6f),
+                    fontSize = 15.sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(horizontal = 24.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Account Information card
+            Column(
+                modifier = Modifier.padding(horizontal = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                HorizontalDivider(color = Color.White.copy(alpha = 0.1f))
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            SystemBackground,
+                            RoundedCornerShape(12.dp)
+                        )
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    // Info header
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Info,
+                            contentDescription = null,
+                            tint = Color(0xFF0A84FF), // iOS system blue
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Text(
+                            text = localizationManager.localizedString("press_account_info"),
+                            color = Color(0xFF0A84FF),
+                            fontSize = 17.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+
+                    // Info rows matching iOS set
+                    AccountInfoRow(
+                        label = localizationManager.localizedString("press_account_user_id"),
+                        value = currentAccount.userId
+                    )
+
+                    AccountInfoRow(
+                        label = localizationManager.localizedString("press_account_organization"),
+                        value = currentAccount.organizationName
+                    )
+
+                    currentAccount.contactPerson?.let { contact ->
+                        AccountInfoRow(
+                            label = localizationManager.localizedString("press_account_contact"),
+                            value = contact
+                        )
+                    }
+
+                    AccountInfoRow(
+                        label = localizationManager.localizedString("press_account_expiration"),
+                        value = currentAccount.expirationDisplayString
+                    )
+
+                    currentAccount.approvalDisplayString?.let { approved ->
+                        AccountInfoRow(
+                            label = localizationManager.localizedString("press_account_approved_at"),
+                            value = approved
+                        )
+                    }
+                }
+            }
+
+            // Expired section
             if (currentAccount.status == PressAccountStatus.EXPIRED) {
                 Spacer(modifier = Modifier.height(24.dp))
-                Button(
-                    onClick = {
-                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://miterundesu.jp/press"))
-                        context.startActivity(intent)
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFFF9500),
-                        contentColor = Color.White
-                    ),
-                    shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier.fillMaxWidth()
+
+                Column(
+                    modifier = Modifier.padding(horizontal = 24.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = localizationManager.localizedString("press_renewal_link"),
-                        fontWeight = FontWeight.Bold
+                        text = localizationManager.localizedString("press_account_expired_message"),
+                        color = Color.White.copy(alpha = 0.6f),
+                        fontSize = 14.sp,
+                        textAlign = TextAlign.Center
                     )
+
+                    Button(
+                        onClick = {
+                            val intent = Intent(
+                                Intent.ACTION_VIEW,
+                                Uri.parse("https://miterundesu.jp/press")
+                            )
+                            context.startActivity(intent)
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF0A84FF), // Blue like iOS
+                            contentColor = Color.White
+                        ),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.OpenInNew,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Text(
+                                text = localizationManager.localizedString("press_account_apply_page"),
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+                    }
                 }
             }
 
@@ -157,80 +279,24 @@ fun PressModeAccountStatusScreen(
 }
 
 @Composable
-private fun AccountInfoRows(
-    account: PressAccount,
-    localizationManager: LocalizationManager
-) {
-    val rows = buildList {
-        add(localizationManager.localizedString("press_account_organization") to account.organizationName)
-        account.organizationType?.let {
-            add(localizationManager.localizedString("press_account_type") to it)
-        }
-        account.contactPerson?.let {
-            add(localizationManager.localizedString("press_account_contact") to it)
-        }
-        account.email?.let {
-            add(localizationManager.localizedString("press_account_email") to it)
-        }
-        account.phone?.let {
-            add(localizationManager.localizedString("press_account_phone") to it)
-        }
-        account.approvedBy?.let {
-            add(localizationManager.localizedString("press_account_approved_by") to it)
-        }
-        account.approvedAt?.let {
-            add(localizationManager.localizedString("press_account_approved_date") to it)
-        }
-        add(localizationManager.localizedString("press_account_expires") to account.expirationDisplayString)
-        account.daysUntilExpiration?.let {
-            add(localizationManager.localizedString("press_account_days_remaining") to "${it}")
-        }
-        add(localizationManager.localizedString("press_account_status") to account.statusMessage)
-        account.lastLoginAt?.let {
-            add(localizationManager.localizedString("press_account_last_login") to it)
-        }
-    }
-
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(0.dp)
-    ) {
-        rows.forEachIndexed { index, (label, value) ->
-            InfoRow(label = label, value = value)
-            if (index < rows.lastIndex) {
-                HorizontalDivider(
-                    color = Color.White.copy(alpha = 0.1f),
-                    thickness = 0.5.dp
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun InfoRow(
+private fun AccountInfoRow(
     label: String,
     value: String
 ) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 12.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.Top
     ) {
         Text(
             text = label,
             color = Color.White.copy(alpha = 0.6f),
             fontSize = 14.sp,
-            modifier = Modifier.weight(0.4f)
+            modifier = Modifier.width(80.dp)
         )
-        Spacer(modifier = Modifier.width(8.dp))
         Text(
             text = value,
             color = Color.White,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Medium,
-            modifier = Modifier.weight(0.6f)
+            fontSize = 14.sp
         )
     }
 }

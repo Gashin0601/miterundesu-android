@@ -7,19 +7,13 @@ data class CapturedImage(
     val id: UUID = UUID.randomUUID(),
     val capturedAt: Instant = Instant.now(),
     val expiresAt: Instant = Instant.now().plusSeconds(600),
-    val imageData: ByteArray
+    internal val imageData: ByteArray
 ) {
     val isExpired: Boolean
-        get() = expiresAt <= Instant.now()
+        get() = Instant.now() >= expiresAt
 
-    val remainingTime: Long
-        get() = maxOf(0L, expiresAt.toEpochMilli() - Instant.now().toEpochMilli())
-
-    val remainingMinutes: Int
-        get() = (remainingTime / 60000).toInt()
-
-    val remainingSeconds: Int
-        get() = ((remainingTime % 60000) / 1000).toInt()
+    val remainingTime: Double
+        get() = (expiresAt.toEpochMilli() - Instant.now().toEpochMilli()) / 1000.0
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

@@ -3,6 +3,7 @@ package com.miterundesu.app.ui.screen
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,10 +20,14 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Cancel
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Newspaper
 import androidx.compose.material.icons.filled.OpenInNew
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material.icons.filled.Shield
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -33,13 +38,16 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.miterundesu.app.manager.LocalizationManager
-import com.miterundesu.app.ui.theme.DarkBackground
 import com.miterundesu.app.ui.theme.MainGreen
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -49,198 +57,320 @@ fun PressModeInfoScreen(
     onClose: () -> Unit
 ) {
     val context = LocalContext.current
+    val screenWidth = LocalConfiguration.current.screenWidthDp
+    val closeIconSize = (screenWidth * 0.07f).dp
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = {
-                    Text(
-                        text = localizationManager.localizedString("press_info_title"),
-                        color = Color.White
-                    )
-                },
-                navigationIcon = {
+                title = { },
+                actions = {
                     IconButton(onClick = onClose) {
                         Icon(
-                            imageVector = Icons.Filled.Close,
+                            imageVector = Icons.Filled.Cancel,
                             contentDescription = localizationManager.localizedString("close"),
-                            tint = Color.White
+                            tint = Color.White,
+                            modifier = Modifier.size(closeIconSize)
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = DarkBackground
+                    containerColor = MainGreen
                 )
             )
         },
-        containerColor = DarkBackground
+        containerColor = MainGreen
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(horizontal = 24.dp)
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
-            // About press mode
+            // Newspaper icon (matching iOS newspaper.fill)
+            Icon(
+                imageVector = Icons.Filled.Newspaper,
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier.size(70.dp)
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // Title
             Text(
-                text = localizationManager.localizedString("press_info_about_title"),
+                text = localizationManager.localizedString("press_mode_about"),
                 color = Color.White,
-                fontSize = 20.sp,
+                fontSize = 24.sp,
                 fontWeight = FontWeight.Bold
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
-            Text(
-                text = localizationManager.localizedString("press_info_description"),
-                color = Color.White.copy(alpha = 0.8f),
-                fontSize = 15.sp,
-                lineHeight = 22.sp
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Eligible users
-            Text(
-                text = localizationManager.localizedString("press_info_eligible_title"),
-                color = Color.White,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            val eligibleUsers = listOf(
-                localizationManager.localizedString("press_info_eligible_reporters"),
-                localizationManager.localizedString("press_info_eligible_educators"),
-                localizationManager.localizedString("press_info_eligible_researchers"),
-                localizationManager.localizedString("press_info_eligible_accessibility"),
-                localizationManager.localizedString("press_info_eligible_facility")
-            )
-
-            eligibleUsers.forEach { user ->
-                Row(
-                    modifier = Modifier.padding(vertical = 4.dp),
-                    verticalAlignment = Alignment.Top
+            // Description sections
+            Column(
+                modifier = Modifier.padding(horizontal = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(24.dp)
+            ) {
+                // What is Press Mode
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            Color.White.copy(alpha = 0.15f),
+                            RoundedCornerShape(12.dp)
+                        )
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Info,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Text(
+                            text = localizationManager.localizedString("press_mode_what_is"),
+                            color = Color.White,
+                            fontSize = 17.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+
                     Text(
-                        text = "\u2022",
-                        color = MainGreen,
-                        fontSize = 15.sp,
-                        modifier = Modifier.width(16.dp)
-                    )
-                    Text(
-                        text = user,
-                        color = Color.White.copy(alpha = 0.8f),
+                        text = localizationManager.localizedString("press_mode_what_is_desc"),
+                        color = Color.White.copy(alpha = 0.9f),
                         fontSize = 15.sp,
                         lineHeight = 22.sp
                     )
                 }
-            }
 
-            Spacer(modifier = Modifier.height(24.dp))
+                // Target users
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            Color.White.copy(alpha = 0.15f),
+                            RoundedCornerShape(12.dp)
+                        )
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Shield,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Text(
+                            text = localizationManager.localizedString("press_mode_target_users"),
+                            color = Color.White,
+                            fontSize = 17.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
 
-            // Application steps
-            Text(
-                text = localizationManager.localizedString("press_info_steps_title"),
-                color = Color.White,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold
-            )
+                    val targetUsers = listOf(
+                        localizationManager.localizedString("press_mode_target_newspapers"),
+                        localizationManager.localizedString("press_mode_target_tv"),
+                        localizationManager.localizedString("press_mode_target_magazines"),
+                        localizationManager.localizedString("press_mode_target_other")
+                    )
 
-            Spacer(modifier = Modifier.height(16.dp))
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        targetUsers.forEach { user ->
+                            Row(
+                                verticalAlignment = Alignment.Top
+                            ) {
+                                Text(
+                                    text = "\u2022",
+                                    color = Color.White.copy(alpha = 0.9f),
+                                    fontSize = 15.sp,
+                                    modifier = Modifier.width(16.dp)
+                                )
+                                Text(
+                                    text = user,
+                                    color = Color.White.copy(alpha = 0.9f),
+                                    fontSize = 15.sp,
+                                    lineHeight = 22.sp
+                                )
+                            }
+                        }
+                    }
+                }
 
-            for (step in 1..3) {
-                ApplicationStep(
-                    number = step,
-                    title = localizationManager.localizedString("press_info_step${step}_title"),
-                    description = localizationManager.localizedString("press_info_step${step}_description")
-                )
-                if (step < 3) {
-                    Spacer(modifier = Modifier.height(16.dp))
+                // Application steps
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            Color.White.copy(alpha = 0.15f),
+                            RoundedCornerShape(12.dp)
+                        )
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Email,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Text(
+                            text = localizationManager.localizedString("press_info_how_to_apply_title"),
+                            color = Color.White,
+                            fontSize = 17.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+
+                    Text(
+                        text = localizationManager.localizedString("press_info_how_to_apply_desc"),
+                        color = Color.White.copy(alpha = 0.9f),
+                        fontSize = 15.sp,
+                        lineHeight = 22.sp
+                    )
+
+                    // Steps card (inner black 0.2 opacity)
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(
+                                Color.Black.copy(alpha = 0.2f),
+                                RoundedCornerShape(8.dp)
+                            )
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        for (step in 1..3) {
+                            Row(
+                                verticalAlignment = Alignment.Top,
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                // Number circle - 24x24, white text on white 0.3 opacity
+                                Box(
+                                    modifier = Modifier
+                                        .size(24.dp)
+                                        .background(
+                                            Color.White.copy(alpha = 0.3f),
+                                            CircleShape
+                                        ),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = "$step",
+                                        color = Color.White,
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+
+                                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                    Text(
+                                        text = localizationManager.localizedString("press_info_step${step}_title"),
+                                        color = Color.White,
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                    Text(
+                                        text = localizationManager.localizedString("press_info_step${step}_desc"),
+                                        color = Color.White.copy(alpha = 0.8f),
+                                        fontSize = 12.sp
+                                    )
+                                }
+                            }
+                        }
+                    }
                 }
             }
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Apply button
-            Button(
-                onClick = {
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://miterundesu.jp/press"))
-                    context.startActivity(intent)
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MainGreen,
-                    contentColor = Color.White
-                ),
-                shape = RoundedCornerShape(12.dp)
+            // Application link section
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Icon(
-                    imageVector = Icons.Filled.OpenInNew,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = localizationManager.localizedString("press_info_apply_button"),
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
+                    text = localizationManager.localizedString("press_mode_application"),
+                    color = Color.White.copy(alpha = 0.8f),
+                    fontSize = 14.sp
                 )
+
+                // Styled link card
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp)
+                        .shadow(
+                            elevation = 4.dp,
+                            shape = RoundedCornerShape(12.dp),
+                            ambientColor = Color.Black.copy(alpha = 0.1f)
+                        )
+                        .clickable {
+                            val intent = Intent(
+                                Intent.ACTION_VIEW,
+                                Uri.parse("https://miterundesu.jp/press")
+                            )
+                            context.startActivity(intent)
+                        }
+                        .semantics {
+                            contentDescription = localizationManager.localizedString("press_mode_application_form")
+                        },
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color.White
+                    )
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 16.dp, horizontal = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.OpenInNew,
+                            contentDescription = null,
+                            tint = MainGreen,
+                            modifier = Modifier.size(22.dp)
+                        )
+
+                        Spacer(modifier = Modifier.width(12.dp))
+
+                        Column {
+                            Text(
+                                text = localizationManager.localizedString("press_mode_application_form"),
+                                color = MainGreen,
+                                fontSize = 17.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = "miterundesu.jp/press",
+                                color = MainGreen,
+                                fontSize = 12.sp
+                            )
+                        }
+                    }
+                }
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
-        }
-    }
-}
-
-@Composable
-private fun ApplicationStep(
-    number: Int,
-    title: String,
-    description: String
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.Start,
-        verticalAlignment = Alignment.Top
-    ) {
-        // Number circle
-        Box(
-            modifier = Modifier
-                .size(32.dp)
-                .background(MainGreen, CircleShape),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "$number",
-                color = Color.White,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold
-            )
-        }
-
-        Spacer(modifier = Modifier.width(12.dp))
-
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = title,
-                color = Color.White,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = description,
-                color = Color.White.copy(alpha = 0.7f),
-                fontSize = 14.sp,
-                lineHeight = 20.sp
-            )
+            Spacer(modifier = Modifier.height(40.dp))
         }
     }
 }

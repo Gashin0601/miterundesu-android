@@ -1,14 +1,15 @@
 package com.miterundesu.app.ui.theme
 
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.colorspace.ColorSpaces
 
-// Primary brand colors
-val MainGreen = Color(0xFF369B45)
+// Primary brand colors - exact iOS sRGB float values from Asset Catalog
+val MainGreen = Color(red = 0.263f, green = 0.510f, blue = 0.278f, alpha = 1.0f, colorSpace = ColorSpaces.Srgb)
 val MainGreenDark = Color(0xFF2D8139)
 val MainGreenLight = Color(0xFF4CAF50)
 
-// Theater mode colors
-val TheaterOrange = Color(0xFFD87A39)
+// Theater mode colors - exact iOS sRGB float values from Asset Catalog
+val TheaterOrange = Color(red = 0.914f, green = 0.482f, blue = 0.165f, alpha = 1.0f, colorSpace = ColorSpaces.Srgb)
 val TheaterOrangeDark = Color(0xFFB8662F)
 val TheaterOrangeLight = Color(0xFFE89B5C)
 

@@ -42,6 +42,10 @@ class SettingsManager(private val context: Context) {
     private val _scrollingMessageTheater = MutableStateFlow(DEFAULT_SCROLLING_MESSAGE_THEATER)
     val scrollingMessageTheater: StateFlow<String> = _scrollingMessageTheater.asStateFlow()
 
+    // 現在のモードに応じたスクロールメッセージを返す
+    val scrollingMessage: String
+        get() = if (_isTheaterMode.value) _scrollingMessageTheater.value else _scrollingMessageNormal.value
+
     init {
         scope.launch {
             loadSettings()
@@ -137,7 +141,19 @@ class SettingsManager(private val context: Context) {
         const val DEFAULT_LANGUAGE = "ja"
         const val DEFAULT_IS_THEATER_MODE = false
         const val DEFAULT_IS_PRESS_MODE = false
-        const val DEFAULT_SCROLLING_MESSAGE_NORMAL = "このアプリで撮影された画像は10分で自動削除されます。記録は残りません。安心してご利用ください。"
-        const val DEFAULT_SCROLLING_MESSAGE_THEATER = "撮影はご遠慮ください / No Photography Please"
+        const val DEFAULT_SCROLLING_MESSAGE_NORMAL = "撮影・録画は行っていません。スマートフォンを拡大鏡として使っています。画像は一時的に保存できますが、10分後には自動的に削除されます。共有やスクリーンショットはできません。"
+        const val DEFAULT_SCROLLING_MESSAGE_THEATER = "撮影・録画は行っていません。スマートフォンを拡大鏡として使用しています。スクリーンショットや画面収録を含め、一切の保存ができないカメラアプリですので、ご安心ください。"
     }
+}
+
+// MARK: - Language
+enum class Language(val code: String) {
+    JAPANESE("ja"),
+    ENGLISH("en");
+
+    val displayName: String
+        get() = when (this) {
+            JAPANESE -> "日本語"
+            ENGLISH -> "English"
+        }
 }

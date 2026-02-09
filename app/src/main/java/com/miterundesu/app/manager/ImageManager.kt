@@ -88,7 +88,7 @@ class ImageManager(context: Context) : ComponentCallbacks2 {
             withContext(Dispatchers.IO) {
                 dao.insert(entity)
             }
-            _images.value = _images.value + image
+            _images.value = listOf(image) + _images.value
             startTimer(image)
         }
     }

@@ -20,6 +20,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import java.time.Instant
+import java.util.Date
 
 class PressModeManager(
     private val context: Context,
@@ -43,6 +44,12 @@ class PressModeManager(
 
     private val _isLoggedIn = MutableStateFlow(false)
     val isLoggedIn: StateFlow<Boolean> = _isLoggedIn.asStateFlow()
+
+    private val loginDateKey = "miterundesu.press.loginDate"
+
+    private val loginPrefs: SharedPreferences by lazy {
+        context.getSharedPreferences("miterundesu_press", Context.MODE_PRIVATE)
+    }
 
     private val encryptedPrefs: SharedPreferences by lazy {
         val masterKey = MasterKey.Builder(context)
@@ -127,8 +134,9 @@ class PressModeManager(
             settingsManager.setPressMode(true)
 
             saveCredentials(userId, password)
+            recordLogin()
 
-            updateLastLoginAt(account.id)
+            updateLastLoginAt(userId)
 
             _isLoading.value = false
             true
@@ -156,7 +164,7 @@ class PressModeManager(
             .apply()
     }
 
-    private fun updateLastLoginAt(accountId: String) {
+    private fun updateLastLoginAt(userId: String) {
         scope.launch(Dispatchers.IO) {
             try {
                 SupabaseClientProvider.client.postgrest["press_accounts"]
@@ -166,7 +174,7 @@ class PressModeManager(
                         }
                     ) {
                         filter {
-                            eq("id", accountId)
+                            eq("user_id", userId)
                         }
                     }
             } catch (e: Exception) {
@@ -182,5 +190,39 @@ class PressModeManager(
         _error.value = null
         settingsManager.setPressMode(false)
         clearCredentials()
+        clearLoginRecord()
+    }
+
+    // MARK: - Login Record
+
+    /// ログイン成功を記録
+    private fun recordLogin() {
+        loginPrefs.edit()
+            .putLong(loginDateKey, Date().time)
+            .apply()
+    }
+
+    /// ログイン記録をクリア
+    private fun clearLoginRecord() {
+        loginPrefs.edit()
+            .remove(loginDateKey)
+            .apply()
+    }
+
+    // MARK: - Account Info
+
+    /// ログイン中のユーザーIDを取得
+    fun getCurrentUserId(): String? {
+        return _pressAccount.value?.userId
+    }
+
+    /// アカウント情報の概要を取得
+    fun getAccountSummary(): String? {
+        return _pressAccount.value?.summary
+    }
+
+    /// 有効期限までの残り日数を取得
+    fun getDaysUntilExpiration(): Int? {
+        return _pressAccount.value?.daysUntilExpiration
     }
 }

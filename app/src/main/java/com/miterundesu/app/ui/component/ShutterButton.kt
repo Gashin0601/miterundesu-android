@@ -9,41 +9,62 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.miterundesu.app.manager.LocalizationManager
 
 @Composable
 fun ShutterButton(
     isCapturing: Boolean,
+    isTheaterMode: Boolean,
     onClick: () -> Unit,
+    buttonSize: Dp,
     modifier: Modifier = Modifier
 ) {
+    val isDisabled = isTheaterMode || isCapturing
+    val outerStroke = buttonSize * 0.057f
+    val innerSize = buttonSize * 0.857f
+
+    val accessibilityLabel = LocalizationManager.localizedString(
+        when {
+            isTheaterMode -> "capture_disabled"
+            isCapturing -> "capturing"
+            else -> "capture"
+        }
+    )
+
     Box(
         modifier = modifier
-            .size(70.dp)
+            .size(buttonSize)
             .clip(CircleShape)
-            .border(3.dp, Color.White, CircleShape)
-            .clickable(
-                enabled = !isCapturing,
-                onClick = onClick
+            .border(outerStroke, Color.White, CircleShape)
+            .then(
+                if (!isDisabled) {
+                    Modifier.clickable(onClick = onClick)
+                } else {
+                    Modifier
+                }
             )
+            .alpha(if (isDisabled) 0.3f else 1.0f)
             .semantics {
-                contentDescription = "撮影"
+                contentDescription = accessibilityLabel
                 role = Role.Button
             },
         contentAlignment = Alignment.Center
     ) {
         Box(
             modifier = Modifier
-                .size(56.dp)
+                .size(innerSize)
                 .clip(CircleShape)
                 .background(
-                    if (isCapturing) Color.Gray else Color.White,
+                    if (isDisabled) Color.Gray else Color.White,
                     CircleShape
                 )
         )

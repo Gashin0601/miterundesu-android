@@ -5,14 +5,14 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
@@ -24,13 +24,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.miterundesu.app.R
+import com.miterundesu.app.ui.theme.SurfaceDarkElevated
 import kotlinx.coroutines.delay
 
 @Composable
@@ -50,30 +56,34 @@ fun ScreenshotWarningDialog(
     }
 
     Dialog(
-        onDismissRequest = onDismiss,
+        onDismissRequest = { /* Not dismissible by user - matches iOS */ },
         properties = DialogProperties(
-            dismissOnBackPress = true,
-            dismissOnClickOutside = true
+            dismissOnBackPress = false,
+            dismissOnClickOutside = false
         )
     ) {
         Card(
-            shape = RoundedCornerShape(16.dp),
+            shape = RoundedCornerShape(20.dp),
             colors = CardDefaults.cardColors(
-                containerColor = Color(0xFF2C2C2E)
+                containerColor = SurfaceDarkElevated
             ),
             elevation = CardDefaults.cardElevation(
-                defaultElevation = 8.dp
+                defaultElevation = 20.dp
             )
         ) {
             Column(
-                modifier = Modifier.padding(24.dp),
+                modifier = Modifier
+                    .padding(24.dp)
+                    .semantics(mergeDescendants = true) { }, // Matching iOS accessibilityElement(children: .combine)
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Icon(
                     imageVector = Icons.Filled.Warning,
                     contentDescription = null,
-                    tint = Color(0xFFFF9500),
-                    modifier = Modifier.size(48.dp)
+                    tint = Color.Yellow,
+                    modifier = Modifier
+                        .size(50.dp)
+                        .clearAndSetSemantics { } // Decorative icon (matching iOS accessibilityHidden)
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -90,7 +100,7 @@ fun ScreenshotWarningDialog(
 
                 Text(
                     text = message,
-                    color = Color.White.copy(alpha = 0.8f),
+                    color = Color.White.copy(alpha = 0.6f),
                     fontSize = 14.sp,
                     textAlign = TextAlign.Center,
                     lineHeight = 20.sp
@@ -103,6 +113,7 @@ fun ScreenshotWarningDialog(
 @Composable
 fun RecordingWarningBanner(
     visible: Boolean,
+    title: String,
     message: String,
     modifier: Modifier = Modifier
 ) {
@@ -112,20 +123,52 @@ fun RecordingWarningBanner(
         exit = slideOutVertically(targetOffsetY = { -it }) + fadeOut(),
         modifier = modifier
     ) {
-        Box(
+        Card(
+            shape = RoundedCornerShape(12.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = SurfaceDarkElevated
+            ),
             modifier = Modifier
+                .padding(horizontal = 20.dp)
+                .padding(top = 50.dp)
                 .fillMaxWidth()
-                .background(Color(0xFFE53935))
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            contentAlignment = Alignment.Center
+                .shadow(
+                    elevation = 10.dp,
+                    shape = RoundedCornerShape(12.dp),
+                    ambientColor = Color.Red.copy(alpha = 0.3f),
+                    spotColor = Color.Red.copy(alpha = 0.3f)
+                )
         ) {
-            Text(
-                text = message,
-                color = Color.White,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.SemiBold,
-                textAlign = TextAlign.Center
-            )
+            Row(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .semantics(mergeDescendants = true) { }, // Matching iOS accessibilityElement(children: .combine)
+                verticalAlignment = Alignment.Top
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_record_circle),
+                    contentDescription = null,
+                    tint = Color.Red,
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clearAndSetSemantics { } // Decorative icon (matching iOS accessibilityHidden)
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = title,
+                        color = Color.White,
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = message,
+                        color = Color.White.copy(alpha = 0.6f),
+                        fontSize = 12.sp
+                    )
+                }
+            }
         }
     }
 }

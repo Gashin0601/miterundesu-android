@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="main_green">#FF369B45</color>
+    <color name="main_green">#FF438247</color>
     <color name="main_green_dark">#FF2D8139</color>
-    <color name="theater_orange">#FFD87A39</color>
+    <color name="theater_orange">#FFE97B2A</color>
     <color name="theater_orange_dark">#FFB8662F</color>
     <color name="white">#FFFFFFFF</color>
     <color name="black">#FF000000</color>

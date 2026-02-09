@@ -13,26 +13,44 @@ fun Bitmap.withWatermark(text: String): Bitmap {
     val result = this.copy(Bitmap.Config.ARGB_8888, true) ?: return this
     val canvas = Canvas(result)
 
-    val textSize = result.height * 0.018f
-    val titleTextSize = textSize * 1.3f
-    val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = android.graphics.Color.argb(90, 255, 255, 255) // semi-transparent white
-        this.textSize = textSize
+    val imageWidth = result.width.toFloat()
+
+    // Padding: 1.5% of image width (matches iOS)
+    val padding = imageWidth * 0.015f
+
+    // Title font: 2% of image width, bold system font (matches iOS)
+    val titleFontSize = imageWidth * 0.02f
+    val titlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = android.graphics.Color.argb(102, 255, 255, 255) // 0.4 alpha (matches iOS)
+        textSize = titleFontSize
+        typeface = Typeface.DEFAULT_BOLD
+    }
+
+    // Info font: 1.5% of image width, monospace (matches iOS)
+    val infoFontSize = imageWidth * 0.015f
+    val infoPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = android.graphics.Color.argb(89, 255, 255, 255) // 0.35 alpha (matches iOS)
+        textSize = infoFontSize
         typeface = Typeface.MONOSPACE
-        setShadowLayer(2f, 1f, 1f, android.graphics.Color.argb(128, 0, 0, 0))
     }
 
-    val x = textSize * 0.8f
-    val y = result.height - textSize * 0.8f
+    // Measure text heights
+    val titleMetrics = titlePaint.fontMetrics
+    val titleHeight = titleMetrics.descent - titleMetrics.ascent
+    val infoMetrics = infoPaint.fontMetrics
+    val infoHeight = infoMetrics.descent - infoMetrics.ascent
 
-    // Draw app title line above the info text
-    val titlePaint = Paint(paint).apply {
-        this.textSize = titleTextSize
-    }
-    val titleY = y - textSize * 1.2f
+    // Total height: title + 2px spacing + info (matches iOS)
+    val totalHeight = titleHeight + 2f + infoHeight
+
+    // Position at bottom-left (matches iOS .bottomLeft)
+    val x = padding
+    val titleY = result.height - totalHeight - padding - titleMetrics.ascent
+    val infoY = titleY + titleMetrics.descent + 2f - infoMetrics.ascent
+
+    // Draw text (no shadow, matches iOS bitmap watermark)
     canvas.drawText("ミテルンデス", x, titleY, titlePaint)
-
-    canvas.drawText(text, x, y, paint)
+    canvas.drawText(text, x, infoY, infoPaint)
 
     return result
 }

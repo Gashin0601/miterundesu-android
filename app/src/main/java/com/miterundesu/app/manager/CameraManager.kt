@@ -3,7 +3,6 @@ package com.miterundesu.app.manager
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.provider.Settings
 import androidx.camera.core.AspectRatio
 import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
@@ -15,6 +14,7 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
+import com.miterundesu.app.util.generateWatermarkText
 import com.miterundesu.app.util.withWatermark
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -26,8 +26,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import kotlin.math.max
 
 class CameraManager {
@@ -42,6 +40,12 @@ class CameraManager {
 
     private val _isCapturing = MutableStateFlow(false)
     val isCapturing: StateFlow<Boolean> = _isCapturing.asStateFlow()
+
+    private val _isCameraReady = MutableStateFlow(false)
+    val isCameraReady: StateFlow<Boolean> = _isCameraReady.asStateFlow()
+
+    private val _isSessionRunning = MutableStateFlow(false)
+    val isSessionRunning: StateFlow<Boolean> = _isSessionRunning.asStateFlow()
 
     var maxZoom: Float = 100f
 
@@ -82,8 +86,11 @@ class CameraManager {
                     preview,
                     imageCapture
                 )
+                _isCameraReady.value = true
+                _isSessionRunning.value = true
             } catch (_: Exception) {
                 // Camera initialization failed
+                _isCameraReady.value = false
             }
         }, ContextCompat.getMainExecutor(context))
     }
@@ -110,7 +117,7 @@ class CameraManager {
         }
     }
 
-    fun capturePhoto(onCaptured: (ByteArray) -> Unit) {
+    fun capturePhoto(onCaptured: (ByteArray?) -> Unit) {
         if (_isCapturing.value) return
         val capture = imageCapture ?: return
         val ctx = context ?: return
@@ -147,11 +154,13 @@ class CameraManager {
                             } else {
                                 scope.launch(Dispatchers.Main) {
                                     _isCapturing.value = false
+                                    onCaptured(null)
                                 }
                             }
                         } catch (_: Exception) {
                             scope.launch(Dispatchers.Main) {
                                 _isCapturing.value = false
+                                onCaptured(null)
                             }
                         }
                     }
@@ -159,6 +168,7 @@ class CameraManager {
 
                 override fun onError(exception: ImageCaptureException) {
                     _isCapturing.value = false
+                    onCaptured(null)
                 }
             }
         )
@@ -210,14 +220,21 @@ class CameraManager {
         return scaled
     }
 
-    private fun generateWatermarkText(context: Context): String {
-        val formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm")
-        val dateStr = LocalDateTime.now().format(formatter)
-        val deviceId = Settings.Secure.getString(
-            context.contentResolver,
-            Settings.Secure.ANDROID_ID
-        )?.take(6) ?: "000000"
-        return "$dateStr | ID: $deviceId"
+    fun setMaxZoomFactor(factor: Float) {
+        maxZoom = factor
+    }
+
+    fun startSession() {
+        // CameraX lifecycle is managed by bindToLifecycle;
+        // this is a semantic wrapper matching iOS's startSession.
+        _isSessionRunning.value = true
+        android.util.Log.d("CameraManager", "Camera session started")
+    }
+
+    fun stopSession() {
+        cameraProvider?.unbindAll()
+        _isSessionRunning.value = false
+        android.util.Log.d("CameraManager", "Camera session stopped")
     }
 
     fun release() {

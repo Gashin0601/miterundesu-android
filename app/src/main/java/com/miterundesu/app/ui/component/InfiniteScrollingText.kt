@@ -6,8 +6,9 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -20,9 +21,14 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.miterundesu.app.manager.LocalizationManager
 
 @Composable
 fun InfiniteScrollingText(
@@ -32,18 +38,18 @@ fun InfiniteScrollingText(
     if (text.isBlank()) return
 
     val density = LocalDensity.current
-    var containerWidthPx by remember { mutableIntStateOf(0) }
+    val spacingPx = with(density) { 40.dp.toPx() }
     var textWidthPx by remember { mutableIntStateOf(0) }
 
-    val totalScrollPx = containerWidthPx + textWidthPx
-    val durationMs = remember(text) {
-        (text.length * 150).coerceAtLeast(3000)
-    }
+    val itemWidthPx = textWidthPx + spacingPx.toInt()
+    val totalDistance = itemWidthPx * 10f
+    val speedPx = with(density) { 50.dp.toPx() } // 50dp/sec matching iOS 50pt/sec
+    val durationMs = if (totalDistance > 0) (totalDistance / speedPx * 1000f).toInt() else 3000
 
     val infiniteTransition = rememberInfiniteTransition(label = "scrollText")
     val offset by infiniteTransition.animateFloat(
         initialValue = 0f,
-        targetValue = 1f,
+        targetValue = -totalDistance,
         animationSpec = infiniteRepeatable(
             animation = tween(durationMillis = durationMs, easing = LinearEasing),
             repeatMode = RepeatMode.Restart
@@ -51,46 +57,30 @@ fun InfiniteScrollingText(
         label = "scrollOffset"
     )
 
-    Box(
+    Row(
         modifier = modifier
-            .fillMaxWidth()
+            .height(32.dp)
             .clipToBounds()
-            .onSizeChanged { containerWidthPx = it.width }
+            .offset { IntOffset(offset.toInt(), 0) }
+            .clearAndSetSemantics {
+                contentDescription = "${LocalizationManager.localizedString("scrolling_message_label")}\u3001$text"
+            },
+        horizontalArrangement = Arrangement.spacedBy(40.dp)
     ) {
-        if (totalScrollPx > 0) {
-            val currentOffset = containerWidthPx - (offset * totalScrollPx).toInt()
-
+        repeat(20) {
             Text(
                 text = text,
-                color = Color.White,
-                fontSize = 14.sp,
+                color = Color.White.copy(alpha = 0.8f),
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Medium,
                 maxLines = 1,
                 overflow = TextOverflow.Visible,
                 softWrap = false,
-                modifier = Modifier
-                    .offset { IntOffset(currentOffset, 0) }
-                    .onSizeChanged { textWidthPx = it.width }
-            )
-
-            Text(
-                text = text,
-                color = Color.White,
-                fontSize = 14.sp,
-                maxLines = 1,
-                overflow = TextOverflow.Visible,
-                softWrap = false,
-                modifier = Modifier
-                    .offset { IntOffset(currentOffset + textWidthPx + containerWidthPx / 3, 0) }
-            )
-        } else {
-            Text(
-                text = text,
-                color = Color.White,
-                fontSize = 14.sp,
-                maxLines = 1,
-                overflow = TextOverflow.Visible,
-                softWrap = false,
-                modifier = Modifier.onSizeChanged { textWidthPx = it.width }
+                modifier = if (it == 0) {
+                    Modifier.onSizeChanged { size -> textWidthPx = size.width }
+                } else {
+                    Modifier
+                }
             )
         }
     }

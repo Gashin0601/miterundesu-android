@@ -4,27 +4,35 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Cancel
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Newspaper
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -38,17 +46,20 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.miterundesu.app.manager.LocalizationManager
 import com.miterundesu.app.manager.PressModeManager
-import com.miterundesu.app.ui.theme.DarkBackground
 import com.miterundesu.app.ui.theme.MainGreen
 import kotlinx.coroutines.launch
 
@@ -63,180 +74,349 @@ fun PressModeLoginScreen(
     var userId by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
+    var loginAttempted by remember { mutableStateOf(false) }
     val isLoading by pressModeManager.isLoading.collectAsStateWithLifecycle()
     val error by pressModeManager.error.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
+    val screenWidth = LocalConfiguration.current.screenWidthDp
+
+    val canLogin = userId.isNotBlank() && password.isNotBlank() && !isLoading
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = {
-                    Text(
-                        text = localizationManager.localizedString("press_login_title"),
-                        color = Color.White
-                    )
-                },
-                navigationIcon = {
+                title = { },
+                actions = {
                     IconButton(onClick = onClose) {
                         Icon(
-                            imageVector = Icons.Filled.Close,
+                            imageVector = Icons.Filled.Cancel,
                             contentDescription = localizationManager.localizedString("close"),
-                            tint = Color.White
+                            tint = Color.White,
+                            modifier = Modifier.size((screenWidth * 0.07).dp)
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = DarkBackground
+                    containerColor = MainGreen
                 )
             )
         },
-        containerColor = DarkBackground
+        containerColor = MainGreen
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(horizontal = 24.dp)
                 .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // User ID field
-            OutlinedTextField(
-                value = userId,
-                onValueChange = { userId = it },
-                label = {
-                    Text(localizationManager.localizedString("press_login_user_id"))
-                },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Ascii,
-                    imeAction = ImeAction.Next
-                ),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
-                    focusedBorderColor = MainGreen,
-                    unfocusedBorderColor = Color.White.copy(alpha = 0.5f),
-                    focusedLabelColor = MainGreen,
-                    unfocusedLabelColor = Color.White.copy(alpha = 0.7f),
-                    cursorColor = MainGreen
-                ),
-                modifier = Modifier.fillMaxWidth(),
-                enabled = !isLoading
-            )
-
-            // Password field
-            OutlinedTextField(
-                value = password,
-                onValueChange = { password = it },
-                label = {
-                    Text(localizationManager.localizedString("press_login_password"))
-                },
-                singleLine = true,
-                visualTransformation = if (passwordVisible) {
-                    VisualTransformation.None
-                } else {
-                    PasswordVisualTransformation()
-                },
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Password,
-                    imeAction = ImeAction.Done
-                ),
-                trailingIcon = {
-                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                        Icon(
-                            imageVector = if (passwordVisible) {
-                                Icons.Filled.Visibility
-                            } else {
-                                Icons.Filled.VisibilityOff
-                            },
-                            contentDescription = if (passwordVisible) "Hide password" else "Show password",
-                            tint = Color.White.copy(alpha = 0.7f)
-                        )
-                    }
-                },
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
-                    focusedBorderColor = MainGreen,
-                    unfocusedBorderColor = Color.White.copy(alpha = 0.5f),
-                    focusedLabelColor = MainGreen,
-                    unfocusedLabelColor = Color.White.copy(alpha = 0.7f),
-                    cursorColor = MainGreen
-                ),
-                modifier = Modifier.fillMaxWidth(),
-                enabled = !isLoading
-            )
-
-            // Error message
-            if (error != null) {
-                Text(
-                    text = error ?: "",
-                    color = Color.Red,
-                    fontSize = 14.sp,
-                    modifier = Modifier.padding(top = 4.dp)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Login button
-            Button(
-                onClick = {
-                    scope.launch {
-                        val success = pressModeManager.login(userId, password)
-                        if (success) {
-                            onLoginSuccess()
-                        }
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp),
-                enabled = userId.isNotBlank() && password.isNotBlank() && !isLoading,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MainGreen,
-                    contentColor = Color.White,
-                    disabledContainerColor = MainGreen.copy(alpha = 0.5f),
-                    disabledContentColor = Color.White.copy(alpha = 0.5f)
-                ),
-                shape = RoundedCornerShape(12.dp)
+            // Header section
+            Column(
+                modifier = Modifier.padding(top = 40.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                if (isLoading) {
-                    CircularProgressIndicator(
-                        color = Color.White,
-                        modifier = Modifier.padding(4.dp),
-                        strokeWidth = 2.dp
-                    )
-                } else {
-                    Text(
-                        text = localizationManager.localizedString("press_login_button"),
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
+                // Newspaper icon (matching iOS newspaper.fill)
+                Icon(
+                    imageVector = Icons.Filled.Newspaper,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(60.dp)
+                )
+
+                Text(
+                    text = localizationManager.localizedString("press_login_title"),
+                    color = Color.White,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Text(
+                    text = localizationManager.localizedString("press_login_subtitle"),
+                    color = Color.White.copy(alpha = 0.9f),
+                    fontSize = 14.sp,
+                    textAlign = TextAlign.Center
+                )
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            // Login Form
+            Column(
+                modifier = Modifier.padding(horizontal = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp)
+            ) {
+                // User ID field
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = localizationManager.localizedString("press_login_user_id"),
+                        color = Color.White,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(
+                                Color.White.copy(alpha = 0.15f),
+                                RoundedCornerShape(10.dp)
+                            )
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Person,
+                            contentDescription = null,
+                            tint = Color.White.copy(alpha = 0.7f),
+                            modifier = Modifier.size(20.dp)
+                        )
+
+                        Spacer(modifier = Modifier.width(12.dp))
+
+                        BasicTextField(
+                            value = userId,
+                            onValueChange = { userId = it },
+                            modifier = Modifier.weight(1f),
+                            singleLine = true,
+                            textStyle = TextStyle(
+                                color = Color.White,
+                                fontSize = 16.sp
+                            ),
+                            cursorBrush = SolidColor(Color.White),
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Ascii,
+                                imeAction = ImeAction.Next
+                            ),
+                            enabled = !isLoading,
+                            decorationBox = { innerTextField ->
+                                Box {
+                                    if (userId.isEmpty()) {
+                                        Text(
+                                            text = localizationManager.localizedString("press_login_user_id_placeholder"),
+                                            color = Color.White.copy(alpha = 0.5f),
+                                            fontSize = 16.sp
+                                        )
+                                    }
+                                    innerTextField()
+                                }
+                            }
+                        )
+                    }
+                }
+
+                // Password field
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = localizationManager.localizedString("press_login_password"),
+                        color = Color.White,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(
+                                Color.White.copy(alpha = 0.15f),
+                                RoundedCornerShape(10.dp)
+                            )
+                            .padding(horizontal = 16.dp, vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Lock,
+                            contentDescription = null,
+                            tint = Color.White.copy(alpha = 0.7f),
+                            modifier = Modifier.size(20.dp)
+                        )
+
+                        Spacer(modifier = Modifier.width(12.dp))
+
+                        BasicTextField(
+                            value = password,
+                            onValueChange = { password = it },
+                            modifier = Modifier.weight(1f),
+                            singleLine = true,
+                            textStyle = TextStyle(
+                                color = Color.White,
+                                fontSize = 16.sp
+                            ),
+                            cursorBrush = SolidColor(Color.White),
+                            visualTransformation = if (passwordVisible) {
+                                VisualTransformation.None
+                            } else {
+                                PasswordVisualTransformation()
+                            },
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Password,
+                                imeAction = ImeAction.Done
+                            ),
+                            enabled = !isLoading,
+                            decorationBox = { innerTextField ->
+                                Box(
+                                    modifier = Modifier.padding(vertical = 12.dp)
+                                ) {
+                                    if (password.isEmpty()) {
+                                        Text(
+                                            text = localizationManager.localizedString("press_login_password_placeholder"),
+                                            color = Color.White.copy(alpha = 0.5f),
+                                            fontSize = 16.sp
+                                        )
+                                    }
+                                    innerTextField()
+                                }
+                            }
+                        )
+
+                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                            Icon(
+                                imageVector = if (passwordVisible) {
+                                    Icons.Filled.VisibilityOff
+                                } else {
+                                    Icons.Filled.Visibility
+                                },
+                                contentDescription = if (passwordVisible) {
+                                    localizationManager.localizedString("hide_password")
+                                } else {
+                                    localizationManager.localizedString("show_password")
+                                },
+                                tint = Color.White.copy(alpha = 0.7f)
+                            )
+                        }
+                    }
+                }
+
+                // Error message
+                if (error != null && loginAttempted) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(
+                                Color.Red.copy(alpha = 0.3f),
+                                RoundedCornerShape(8.dp)
+                            )
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Warning,
+                            contentDescription = null,
+                            tint = Color.Yellow,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Text(
+                            text = error ?: "",
+                            color = Color.White,
+                            fontSize = 14.sp
+                        )
+                    }
+                }
+
+                // Login button
+                Button(
+                    onClick = {
+                        loginAttempted = true
+                        scope.launch {
+                            val success = pressModeManager.login(userId, password)
+                            if (success) {
+                                onLoginSuccess()
+                            }
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
+                    enabled = canLogin,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.White,
+                        contentColor = MainGreen,
+                        disabledContainerColor = Color.White.copy(alpha = 0.3f),
+                        disabledContentColor = Color.White.copy(alpha = 0.5f)
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            color = Color.White,
+                            modifier = Modifier.size(24.dp),
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Person,
+                                contentDescription = null,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Text(
+                                text = localizationManager.localizedString("press_login_button"),
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+                    }
+                }
+            }
+
             // Info section
-            Text(
-                text = localizationManager.localizedString("press_info_title"),
-                color = Color.White,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold
-            )
+            Column(
+                modifier = Modifier
+                    .padding(horizontal = 24.dp)
+                    .padding(top = 20.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                HorizontalDivider(
+                    color = Color.White.copy(alpha = 0.3f)
+                )
 
-            Text(
-                text = localizationManager.localizedString("press_info_description"),
-                color = Color.White.copy(alpha = 0.7f),
-                fontSize = 14.sp,
-                lineHeight = 20.sp
-            )
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            Color.White.copy(alpha = 0.15f),
+                            RoundedCornerShape(12.dp)
+                        )
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Info,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Text(
+                            text = localizationManager.localizedString("press_login_info_title"),
+                            color = Color.White,
+                            fontSize = 17.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
 
-            Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = localizationManager.localizedString("press_login_info_description"),
+                        color = Color.White.copy(alpha = 0.9f),
+                        fontSize = 14.sp
+                    )
+
+                    Text(
+                        text = localizationManager.localizedString("press_login_info_apply"),
+                        color = Color.White.copy(alpha = 0.9f),
+                        fontSize = 14.sp
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(40.dp))
         }
     }
 }

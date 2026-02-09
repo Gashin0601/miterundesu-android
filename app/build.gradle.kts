@@ -4,7 +4,11 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.room)
 }
+
+// Redirect build directory to avoid space-in-path KSP/Room issue
+layout.buildDirectory = File("/tmp/miterundesu-android-build/app")
 
 android {
     namespace = "com.miterundesu.app"
@@ -46,13 +50,17 @@ android {
         buildConfig = true
     }
 
+    // Room schema: use temp directory to avoid space-in-path KSP issue
     room {
-        schemaDirectory("$projectDir/schemas")
+        schemaDirectory("/tmp/miterundesu-room-schemas")
     }
 }
 
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
+
+    // Material (XML theme)
+    implementation("com.google.android.material:material:1.12.0")
 
     // Core
     implementation(libs.androidx.core.ktx)

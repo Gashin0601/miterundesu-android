@@ -2,8 +2,8 @@ package com.miterundesu.app.ui.component
 
 import android.provider.Settings
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -19,17 +19,24 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.miterundesu.app.R
 import kotlinx.coroutines.delay
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 @Composable
 fun WatermarkView(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isDarkBackground: Boolean = true
 ) {
     val context = LocalContext.current
     var watermarkText by remember { mutableStateOf("") }
@@ -38,7 +45,7 @@ fun WatermarkView(
         Settings.Secure.getString(
             context.contentResolver,
             Settings.Secure.ANDROID_ID
-        )?.take(6) ?: "000000"
+        )?.take(6)?.uppercase(Locale.ROOT) ?: "000000"
     }
 
     fun updateText() {
@@ -56,30 +63,36 @@ fun WatermarkView(
     }
 
     Column(
-        modifier = modifier.padding(8.dp),
-        horizontalAlignment = Alignment.Start
+        modifier = modifier.clearAndSetSemantics { },
+        horizontalAlignment = Alignment.Start,
+        verticalArrangement = Arrangement.spacedBy(1.dp)
     ) {
-        // Logo image
-        try {
-            Image(
-                painter = painterResource(id = R.drawable.logo),
-                contentDescription = null,
-                modifier = Modifier
-                    .height(10.dp)
-                    .alpha(0.4f),
-                contentScale = ContentScale.FillHeight
-            )
-        } catch (_: Exception) {
-            // Logo resource not available yet
-        }
+        // Logo image (matching iOS Image("Logo") - wide format with text)
+        Image(
+            painter = painterResource(id = R.drawable.logo_wide),
+            contentDescription = null,
+            modifier = Modifier
+                .height(10.dp)
+                .alpha(0.4f)
+                .clearAndSetSemantics { },
+            contentScale = ContentScale.FillHeight
+        )
 
         // Info text
         Text(
             text = watermarkText,
-            color = Color.White,
+            color = Color.White.copy(alpha = 0.35f),
             fontSize = 8.sp,
+            fontWeight = FontWeight.Medium,
             fontFamily = FontFamily.Monospace,
-            modifier = Modifier.alpha(0.35f)
+            style = TextStyle(
+                shadow = Shadow(
+                    color = Color.Black.copy(alpha = 0.6f),
+                    offset = Offset(0f, 0.5f),
+                    blurRadius = 1f
+                )
+            ),
+            modifier = Modifier.clearAndSetSemantics { }
         )
     }
 }

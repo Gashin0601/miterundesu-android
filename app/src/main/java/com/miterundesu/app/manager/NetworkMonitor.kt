@@ -14,7 +14,7 @@ class NetworkMonitor(context: Context) {
     private val connectivityManager =
         context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
-    private val _isConnected = MutableStateFlow(checkCurrentConnectivity())
+    private val _isConnected = MutableStateFlow(true)
     val isConnected: StateFlow<Boolean> = _isConnected.asStateFlow()
 
     private val networkCallback = object : ConnectivityManager.NetworkCallback() {
