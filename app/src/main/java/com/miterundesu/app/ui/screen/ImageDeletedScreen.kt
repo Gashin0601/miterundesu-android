@@ -196,7 +196,8 @@ fun ImageDeletedScreen(
                         .clickable(onClick = closeSafely)
                         .padding(vertical = 18.dp)
                         .semantics(mergeDescendants = true) {
-                            contentDescription = localizationManager.localizedString("close")
+                            contentDescription = localizationManager.localizedString("close") +
+                                    ", " + localizationManager.localizedString("close_deleted_image_hint")
                         },
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
