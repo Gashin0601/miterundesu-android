@@ -1,5 +1,10 @@
 package com.miterundesu.app.ui.screen
 
+import android.os.Build
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
+import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityManager
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -13,15 +18,19 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -51,11 +60,51 @@ fun ImageDeletedScreen(
         accessibilityManager?.isTouchExplorationEnabled == true
     }
 
-    // Auto-dismiss after 2.5s when TalkBack is not enabled (matching iOS)
-    if (!isTalkBackEnabled) {
-        LaunchedEffect(Unit) {
+    // onDismissの二重呼び出し防止
+    var hasClosed by remember { mutableStateOf(false) }
+    val closeSafely: () -> Unit = remember(onDismiss) {
+        {
+            if (!hasClosed) {
+                hasClosed = true
+                onDismiss()
+            }
+        }
+    }
+
+    // 触覚フィードバック（警告）
+    LaunchedEffect(Unit) {
+        val vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val vibratorManager = context.getSystemService(VibratorManager::class.java)
+            vibratorManager?.defaultVibrator
+        } else {
+            @Suppress("DEPRECATION")
+            context.getSystemService(Vibrator::class.java)
+        }
+        vibrator?.vibrate(
+            VibrationEffect.createOneShot(200L, VibrationEffect.DEFAULT_AMPLITUDE)
+        )
+    }
+
+    // TalkBackアナウンス + 自動消去
+    LaunchedEffect(Unit) {
+        if (isTalkBackEnabled) {
+            // TalkBackアナウンス
+            val event = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                AccessibilityEvent(AccessibilityEvent.TYPE_ANNOUNCEMENT)
+            } else {
+                @Suppress("DEPRECATION")
+                AccessibilityEvent.obtain(AccessibilityEvent.TYPE_ANNOUNCEMENT)
+            }
+            event.text.add(localizationManager.localizedString("image_deleted_title"))
+            accessibilityManager?.sendAccessibilityEvent(event)
+
+            // 読み上げ完了後に自動消去（3秒）
+            delay(3000L)
+            closeSafely()
+        } else {
+            // TalkBack OFF: 2.5秒後に自動消去
             delay(2500L)
-            onDismiss()
+            closeSafely()
         }
     }
 
@@ -71,36 +120,57 @@ fun ImageDeletedScreen(
         ) {
             Spacer(modifier = Modifier.weight(1f))
 
-            // Timer icon (matching iOS: 120pt light weight)
-            Icon(
-                imageVector = Icons.Filled.Timer,
-                contentDescription = null,
-                tint = Color.White,
-                modifier = Modifier
-                    .size(120.dp)
-                    .clearAndSetSemantics { }
-            )
+            // ゴミ箱アイコン（TutorialCompletionScreenと同じサークルパターン）
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.clearAndSetSemantics { }
+            ) {
+                // Outer circle
+                Box(
+                    modifier = Modifier
+                        .size(140.dp)
+                        .background(
+                            color = Color.White.copy(alpha = 0.2f),
+                            shape = CircleShape
+                        )
+                )
+                // Inner circle
+                Box(
+                    modifier = Modifier
+                        .size(120.dp)
+                        .background(
+                            color = Color.White,
+                            shape = CircleShape
+                        )
+                )
+                // Trash icon
+                Icon(
+                    imageVector = Icons.Filled.Delete,
+                    contentDescription = null,
+                    tint = MainGreen,
+                    modifier = Modifier.size(60.dp)
+                )
+            }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(50.dp))
 
-            // Title + subtitle merged for TalkBack
+            // メッセージ（TalkBack用にマージ）
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.semantics(mergeDescendants = true) { }
             ) {
-                // Title: fontSize = 36.sp, fontWeight = Bold (matching iOS .system(size: 36, weight: .bold, design: .rounded))
+                // Title: 32sp bold (matching iOS .system(size: 32, weight: .bold, design: .rounded))
                 Text(
                     text = localizationManager.localizedString("image_deleted_title"),
                     color = Color.White,
-                    fontSize = 36.sp,
+                    fontSize = 32.sp,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(20.dp))
 
-                // Subtitle: fontSize = 18.sp, fontWeight = Medium, color white 0.9 opacity, lineSpacing 6
-                // Horizontal padding 40.dp (matching iOS)
+                // Subtitle: 18sp medium, white 0.9 opacity
                 Text(
                     text = localizationManager.localizedString("image_deleted_reason"),
                     color = Color.White.copy(alpha = 0.9f),
@@ -114,10 +184,7 @@ fun ImageDeletedScreen(
 
             Spacer(modifier = Modifier.weight(1f))
 
-            // Close button (VoiceOver/TalkBack only, matching iOS):
-            // full-width with text + xmark icon, MainGreen text on white background,
-            // shadow, RoundedCornerShape(16.dp), verticalPadding 18.dp
-            // Horizontal padding 32.dp, bottom padding 40.dp
+            // 閉じるボタン（TalkBack有効時のみ表示）
             if (isTalkBackEnabled) {
                 Row(
                     modifier = Modifier
@@ -130,7 +197,7 @@ fun ImageDeletedScreen(
                             ambientColor = Color.Black.copy(alpha = 0.15f)
                         )
                         .background(Color.White, RoundedCornerShape(16.dp))
-                        .clickable(onClick = onDismiss)
+                        .clickable(onClick = closeSafely)
                         .padding(vertical = 18.dp)
                         .semantics(mergeDescendants = true) {
                             contentDescription = localizationManager.localizedString("close")
