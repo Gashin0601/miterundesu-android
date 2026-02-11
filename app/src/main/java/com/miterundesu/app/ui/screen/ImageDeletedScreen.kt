@@ -4,7 +4,6 @@ import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
-import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityManager
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -36,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -53,6 +53,7 @@ fun ImageDeletedScreen(
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
+    val view = LocalView.current
     val accessibilityManager = remember {
         context.getSystemService(AccessibilityManager::class.java)
     }
@@ -88,15 +89,10 @@ fun ImageDeletedScreen(
     // TalkBackアナウンス + 自動消去
     LaunchedEffect(Unit) {
         if (isTalkBackEnabled) {
-            // TalkBackアナウンス
-            val event = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                AccessibilityEvent(AccessibilityEvent.TYPE_ANNOUNCEMENT)
-            } else {
-                @Suppress("DEPRECATION")
-                AccessibilityEvent.obtain(AccessibilityEvent.TYPE_ANNOUNCEMENT)
-            }
-            event.text.add(localizationManager.localizedString("image_deleted_title"))
-            accessibilityManager?.sendAccessibilityEvent(event)
+            // TalkBackアナウンス（他の画面と同じパターン）
+            view.announceForAccessibility(
+                localizationManager.localizedString("image_deleted_title")
+            )
 
             // 読み上げ完了後に自動消去（3秒）
             delay(3000L)
